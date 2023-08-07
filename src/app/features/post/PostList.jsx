@@ -3,11 +3,14 @@ import { selectAllPosts } from "./postSlice";
 import "./postList.css";
 import PostAuthor from "./PostAuthor";
 import TimeAgo from "./TimeAgo";
+import ReactionButtons from "./ReactionButtons";
 
 const PostsList = () => {
   const posts = useSelector(selectAllPosts);
 
-  const orderedPosts = posts.slice().sort((a, b) => b.date.localeCompare(a.date));
+  const orderedPosts = posts
+    .slice()
+    .sort((a, b) => b.date.localeCompare(a.date));
 
   const rederedPosts = orderedPosts.map((post) => (
     <article className='post' key={post.id}>
@@ -17,6 +20,8 @@ const PostsList = () => {
         <PostAuthor userId={post.userId} />
         <TimeAgo timeStamp={post.date} />
       </p>
+
+      <ReactionButtons post={post} />
     </article>
   ));
 
