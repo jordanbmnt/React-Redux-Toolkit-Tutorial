@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice, nanoid } from "@reduxjs/toolkit";
+import axios from "axios";
 import { sub } from "date-fns";
 const POST_URL = "https://jsonplaceholder.typecode.com/posts";
 
@@ -7,6 +8,15 @@ const initialState = {
   status: "idle",
   error: null,
 };
+
+export const fetchPost = createAsyncThunk("post/fetchPosts", async () => {
+  try {
+    const response = await axios.get(POST_URL);
+    return [...response.data];
+  } catch (err) {
+    return err.message;
+  }
+});
 
 const postSlice = createSlice({
   name: "posts",
@@ -42,6 +52,32 @@ const postSlice = createSlice({
         existingPost.reactions[reaction]++;
       }
     },
+  },
+  extraReducers(builder) {
+    builder
+      .addCase(fetchPost.pending, (state, action) => {
+        state.status = "loading";
+      })
+      .addCase(fetchPost.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        let min = 1;
+        const loadedPosts = action.payload.map((post) => {
+          post.date = sub(new Date(), { minutes: min++ }).toISOString();
+          post.reactions = {
+            thumbsUp: 0,
+            wow: 0,
+            heart: 0,
+            rocket: 0,
+            coffee: 0,
+          };
+          return post;
+        });
+        state.posts = state.posts.concat(loadedPosts);
+      })
+      .addCase(fetchPost.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      });
   },
 });
 
